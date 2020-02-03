@@ -186,18 +186,26 @@ if __name__ == "__main__" :
     """
     columns_names = ['sentiment', 'twt_id', 'date', 'flag', 'user', 'body']
     ds_tweets = pd.read_csv("/home/xox/my_work/data_sets/tweets.csv", encoding="ISO-8859-1", names=columns_names)
-    # ds_tweets.drop(ds_tweets[ds_tweets.sentiment == 2].index, inplace=True)
-    # stop_set = stopwords.words('english')
-    # vectorizer = TfidfVectorizer(use_idf=True, lowercase=True, strip_accents="ascii", stop_words=stop_set)
+    ds_tweets.drop(ds_tweets[ds_tweets.sentiment == 2].index, inplace=True)
+    stop_set = stopwords.words('english')
+    vectorizer = TfidfVectorizer(use_idf=True, lowercase=True, strip_accents="ascii", stop_words=stop_set)
 
     y = ds_tweets.sentiment
-    # X = vectorizer.fit_transform(ds_tweets.body)
-    # X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.25)
+    X = vectorizer.fit_transform(ds_tweets.body)
+    X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.25)
 
     # Mnom_classifier = MultinomialNB()
     # Mnom_classifier.fit(X_train, y_train)
     # print(roc_auc_score(y_eval, Mnom_classifier.predict_proba(X_eval)[:,1]))
 
+    """
+        In This part we will picke our trained and evaluated models
+        So we won't repeat this part every time.
+        and plus we have a portable model's.
+        It's a good habit to pickle all of the important part
+            1 - back-up of raw data !
+            2 - efficient loading / less time !
+    """
     # fd_classifier = open("MultinomialNB.pickle", "wb")
     # fd_vectorizer = open("Vectorizer_tweets.pickle", "wb")
     # pickle.dump(Mnom_classifier, fd_classifier)
@@ -211,13 +219,18 @@ if __name__ == "__main__" :
 
 
     ## TEST ##
+
+    """
+        Load Classifier's and Vectorizer.
+        Vectorizer is a way to transform collection or documents to tf-id matrix.
+    """
     fd_classifier = open("MultinomialNB.pickle", "rb")
     fd_vectorizer = open("Vectorizer_tweets.pickle", "rb")
     MultinomialNB = pickle.load(fd_classifier)
     vectorizer = pickle.load(fd_vectorizer)
 
     # We scored 80% Accuracy , let's try to get even more !
-    print(MultinomialNB.score(vectorizer.transform(ds_tweets.body),y) * 100)
+    print(MultinomialNB.score(X_eval,y_eval) * 100)
 
 
     # test = [("1337 is a coding school for the next generation"), ("ugh i dont feel great arround")]
