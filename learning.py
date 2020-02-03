@@ -1,3 +1,7 @@
+import sys
+import pickle
+import pandas as pd
+import numpy as np
 from nltk import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -5,16 +9,16 @@ from nltk.tokenize import PunktSentenceTokenizer
 from nltk.corpus import state_union
 from nltk.tag import pos_tag, pos_tag_sents
 from nltk import RegexpParser
-from nltk import NaiveBayesClassifier
 from nltk import classify
+from nltk import NaiveBayesClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import SGDClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-
-import pandas as pd
+from sklearn.metrics import roc_auc_score
 from pprint import pprint
 
-import sys
 # import nltk # used for downloading
-# nltk.download('punkt')
 
 
 if __name__ == "__main__" :
@@ -24,6 +28,7 @@ if __name__ == "__main__" :
     # nltk.download('averaged_perceptron_tagger')
     # nltk.download('stopwords')
     # nltk.download('state_union', download_dir=download_dir)
+    # nltk.download()
 
     ##************************************************ PART ONE ************************************************
 
@@ -179,32 +184,52 @@ if __name__ == "__main__" :
             This model even if it's simple and easly computed. he proved good outputs in real word situation's due to
         his scalability.
     """
-    ds_tweets = pd.read_csv("/Users/ybouladh/goinfre/training.1600000.processed.noemoticon.csv", encoding="ISO-8859-1")
-    ds_tweets.columns = ['sentiment', 'twt_id', 'date', 'flag', 'user', 'body']
-    # tuplex = []
-    # i = 1
-    # for feature in ds_tweets.columns :
-    #     tuplex.append({feature : i})
-    #     i += 1
-    ds_clean_ml = ds_tweets.drop(columns=["twt_id", "date", "flag", 'user'])
-    # pprint(ds_clean_ml)
-    # sys.exit()
-    # features = []
-    # for elem in ds_clean_ml:
-    #     tuplex = {elem.loc [0] : elem[1]}
-    #     features.append(tuplex)
-        
+    columns_names = ['sentiment', 'twt_id', 'date', 'flag', 'user', 'body']
+    ds_tweets = pd.read_csv("/home/xox/my_work/data_sets/tweets.csv", encoding="ISO-8859-1", names=columns_names)
+    # ds_tweets.drop(ds_tweets[ds_tweets.sentiment == 2].index, inplace=True)
+    # stop_set = stopwords.words('english')
+    # vectorizer = TfidfVectorizer(use_idf=True, lowercase=True, strip_accents="ascii", stop_words=stop_set)
 
-    # a way to make it ! #
-    # ds_rand_shuffled = ds_clean_ml.sample(50)
-    # ds_train = ds_rand_shuffled[:40]
-    # ds_eval = ds_rand_shuffled[10:].drop(columns="sentiment")
-    
-    # another way to still make it happen :D #
-    ds_train, ds_eval = train_test_split(ds_clean_ml)
-    # print(ds_train)
-    # sys.exit()
+    y = ds_tweets.sentiment
+    # X = vectorizer.fit_transform(ds_tweets.body)
+    # X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.25)
 
-    Naive_Bayes_classif = NaiveBayesClassifier.train(ds_train)
-    print("NB Accuracy : ", classify.accuracy(NaiveBayesClassifier, ds_eval)) 
+    # Mnom_classifier = MultinomialNB()
+    # Mnom_classifier.fit(X_train, y_train)
+    # print(roc_auc_score(y_eval, Mnom_classifier.predict_proba(X_eval)[:,1]))
+
+    # fd_classifier = open("MultinomialNB.pickle", "wb")
+    # fd_vectorizer = open("Vectorizer_tweets.pickle", "wb")
+    # pickle.dump(Mnom_classifier, fd_classifier)
+    # pickle.dump(vectorizer, fd_vectorizer)
+    # fd_classifier.close()
+    # fd_vectorizer.close()
+
+    # print("NB Accuracy : ", classify.accuracy(some, ds_eval) * 100) 
+    # classifier.show_most_informative_features(15)
+
+
+
+    ## TEST ##
+    fd_classifier = open("MultinomialNB.pickle", "rb")
+    fd_vectorizer = open("Vectorizer_tweets.pickle", "rb")
+    MultinomialNB = pickle.load(fd_classifier)
+    vectorizer = pickle.load(fd_vectorizer)
+
+    # We scored 80% Accuracy , let's try to get even more !
+    print(MultinomialNB.score(vectorizer.transform(ds_tweets.body),y) * 100)
+
+
+    # test = [("1337 is a coding school for the next generation"), ("ugh i dont feel great arround")]
+    # test_vector = vectorizer.transform(test)
+    # prediction = MultinomialNB.predict(test_vector)
+    # for pred in prediction:
+    #     if (pred == 4) :
+    #         print(f"Positive :D")
+    #     else :
+    #         print(f"Negative :C")
+    fd_classifier.close()
+    fd_vectorizer.close()
+
+    ## MORE TEST's ##
 
